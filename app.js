@@ -30,12 +30,12 @@ async function insertData(inputUserName,inputPassword,res){
             const query = { username: inputUserName};
             const count = await col.countDocuments(query);
             if (count>0){
-                registrationFailed();
+                registrationFailed(res);
                 return;
             }
             else{
                 const p = await col.insertOne(userEntries);
-                registrationSuccess(res);
+                registrationSuccess(inputUserName,inputPassword,res);
             }
             await client.close();
 }
@@ -67,11 +67,14 @@ async function loginFailed(res){
         alert("You must register first \n Now you will be redirected.");
         res.redirect('registration');
 }
-async function registrationSuccess(res){
-    res.redirect("/")
+async function registrationSuccess(inputUserName,inputPassword,res){
+    alert("Registered Successfully");
+    searchInDataLoginQuery(inputUserName,inputPassword,res);
 }
-async function registrationFailed(){
+async function registrationFailed(res){
     alert("Username exists, Try different Username.");
+    res.redirect("registration");
+
 }
 async function addToCart(item,res){
             const { MongoClient } = require("mongodb");                                                                                                                                       
@@ -113,13 +116,13 @@ async function getUserAllData(user){
 ////////////////////////////////////////////////////////
 
 // view engine setup
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-
 
 //////////    GET    //////////
 app.get('/',function(req,res){
@@ -232,8 +235,9 @@ app.post('/',function(req,res){
 app.post('/register',function(req,res){
     var username = req.body.username;
     var password = req.body.password;
-    if (username.length == 0){
-        alert("Choose a username.");
+    if (username.length == 0 | password.length == 0){
+        alert("Entries must not be Empty!!");
+        res.redirect("registration");
     }
     else{
         if(password.length < 8){
@@ -243,40 +247,105 @@ app.post('/register',function(req,res){
         }
     }
 });
+
 app.post('/iphone',function(req,res){
-    addToCart('iphone',res);
+    if(loggedInUserData.cart.includes("iphone")){
+        alert("Item already there!");
+        res.redirect('home');
+    }else{
+        addToCart('iphone',res);
+    }
+    
 });
 
 app.post('/galaxy',function(req,res){
-    addToCart('galaxy',res);
+    if(loggedInUserData.cart.includes("galaxy")){
+        alert("Item already there!");
+        res.redirect('home');
+    }
+    else{
+        addToCart('galaxy',res);
+    }
 });
 
 app.post('/leaves', function(req, res){
-    addToCart('leaves',res);
-});
-
-  app.post('/sun', function(req, res){
-    addToCart('sun',res);
-});
-
-  app.post('/boxing', function(req, res){
-    addToCart('boxing',res);
-});
-
-  app.post('/tennis', function(req, res){
-    addToCart('tennis',res);
-});
-app.post('/search',function(req, res){
-    var inventory = ['iphone','galaxy','leaves','sun','boxing','tennis']
-    let searchWord = (req.body.Search).toLowerCase();
-    var hasItem = inventory.includes(searchWord);
-    if (hasItem == true){
-        console.log(searchWord);
-        res.render("searchresults", {searchWord})
-    }else{
-        alert("Not Found!")
+    if(loggedInUserData.cart.includes("leaves")){
+        alert("Item already there!");
+        res.redirect('home');
     }
-  })
+    else{
+        addToCart('leaves',res);
+    }
+});
+
+app.post('/sun', function(req, res){
+    if(loggedInUserData.cart.includes("sun")){
+        alert("Item already there!");
+        res.redirect('home');
+    }
+    else{
+        addToCart('sun',res);
+    }
+});
+
+app.post('/boxing', function(req, res){
+    if(loggedInUserData.cart.includes("boxing")){
+        alert("Item already there!");
+        res.redirect('home');
+    }
+    else{
+        addToCart('boxing',res);
+    }
+});
+
+app.post('/tennis', function(req, res){
+    if(loggedInUserData.cart.includes("tennis")){
+        alert("Item already there!");
+        res.redirect('home');
+    }
+    else{
+        addToCart('tennis',res);
+    }
+});
+
+app.post('/search',function(req, res){
+    var inventory = ['galaxy s21 ultra','iphone 13 pro','leaves of grass','the sun and her flowers','tennis racket','boxing bag'];
+    var searchresults =[];
+    let searchWord = (req.body.Search).toLowerCase();
+    var found = inventory.includes(searchWord);
+    for (let index = 0; index < inventory.length; index++) {
+        const element = inventory[index];
+        if (element.includes(searchWord) == true){
+            if (element == 'galaxy s21 ultra'){
+                searchresults.push('galaxy');
+            }
+            else if(element == 'iphone 13 pro'){
+                searchresults.push('iphone');
+            }
+            else if(element == 'leaves of grass'){
+                searchresults.push('leaves');
+            }
+            else if(element == 'the sun and her flowers'){
+                searchresults.push('sun');
+            }
+            else if(element == 'tennis racket'){
+                searchresults.push('tennis');
+            }
+            else if(element == 'boxing bag'){
+                searchresults.push('boxing');
+            }
+        }
+    }
+    if (searchresults.length > 0){
+        for (let index = 0; index < searchresults.length; index++) {
+            res.render("searchresults", {searchresults})
+        }
+        
+    }else{
+        alert("Not Found!");
+        res.redirect("home");
+    }
+});
 
 if(process.env.PORT){
     app.listen(process.env.PORT,function(){console.log('Server Started')});
