@@ -32,6 +32,27 @@
 </head>
 
 <body>
+    <%if (registrationErrors == 0) { %>
+        <script>
+            alert("Login failed, You must register.");
+        </script>
+    <% } %>
+    <%if (registrationErrors == 1) { %>
+        <script>
+            alert("Entries must not be empty!");
+        </script>
+    <% } %>
+    <%if (registrationErrors == 2) { %>
+        <script>
+            alert("Password must contain more than 8 chars.");
+        </script>
+    <% } %>
+    <%if (registrationErrors == 3) { %>
+        <script>
+            alert("Username exists, Try different Username.");
+        </script>
+    <% } %>
+
     <div class="container">
         <h1>Registration</h1>
     </div>

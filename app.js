@@ -1,16 +1,20 @@
 const { count } = require('console');
 const e = require('express');
 
+
+
 var express = require('express');
 var path = require('path');
 var app = express();
+
 let alert = require('alert'); 
 const { get } = require('jquery');
 
 var loggedIn;
 var loggedInUser;
 var loggedInUserData;
-
+var registrationErrors=-1;
+var homeErrors=-1;
 ///////////////////////////////////////////////////////
 ///////////////////USED FUNCTIONS//////////////////////
 ///////////////////////////////////////////////////////
@@ -61,20 +65,20 @@ async function loginSuccess(res,query){
         loggedIn = true;
         loggedInUser = query;
         getUserAllData(loggedInUser);
-        res.redirect('home')
+        res.redirect('home');
 }
 async function loginFailed(res){
-        alert("You must register first \n Now you will be redirected.");
-        res.redirect('registration');
+        registrationErrors = 0;
+        res.render('registration',{registrationErrors});
+        registrationErrors = -1;
 }
 async function registrationSuccess(inputUserName,inputPassword,res){
-    alert("Registered Successfully");
     searchInDataLoginQuery(inputUserName,inputPassword,res);
 }
 async function registrationFailed(res){
-    alert("Username exists, Try different Username.");
-    res.redirect("registration");
-
+    registrationErrors = 3;
+    res.render('registration',{registrationErrors});
+    registrationErrors = -1;
 }
 async function addToCart(item,res){
             const { MongoClient } = require("mongodb");                                                                                                                                       
@@ -180,7 +184,7 @@ app.get('/leaves',function(req,res){
 });
 app.get('/home',function(req,res){
     if (loggedIn != undefined){
-        res.render('home')
+        res.render('home',{homeErrors})
     }
     else{
         res.redirect('/')
@@ -195,7 +199,7 @@ app.get('/phones',function(req,res){
     }
 });
 app.get('/registration',function(req,res){
-    res.render('registration')
+    res.render('registration',{registrationErrors});
 });
 app.get('/searchresults',function(req,res){
     res.render('searchresults')
@@ -224,6 +228,7 @@ app.get('/tennis',function(req,res){
         res.redirect('/')
     }
 });
+
 //////////   POST    //////////
 
 app.post('/',function(req,res){
@@ -236,12 +241,15 @@ app.post('/register',function(req,res){
     var username = req.body.username;
     var password = req.body.password;
     if (username.length == 0 | password.length == 0){
-        alert("Entries must not be Empty!!");
-        res.redirect("registration");
+        registrationErrors = 1;
+        res.render("registration",{registrationErrors});
+        registrationErrors = -1;
     }
     else{
         if(password.length < 8){
-            alert("Password must be atleast 8 Chars.");
+            registrationErrors = 2;
+            res.render("registration",{registrationErrors});
+            registrationErrors = -1;
         }else{
             insertData(username,password,res);
         }
@@ -250,8 +258,9 @@ app.post('/register',function(req,res){
 
 app.post('/iphone',function(req,res){
     if(loggedInUserData.cart.includes("iphone")){
-        alert("Item already there!");
-        res.redirect('home');
+        homeErrors = 0;
+        res.render('home',{homeErrors});
+        homeErrors=-1;
     }else{
         addToCart('iphone',res);
     }
@@ -260,8 +269,9 @@ app.post('/iphone',function(req,res){
 
 app.post('/galaxy',function(req,res){
     if(loggedInUserData.cart.includes("galaxy")){
-        alert("Item already there!");
-        res.redirect('home');
+        homeErrors = 0;
+        res.render('home',{homeErrors});
+        homeErrors=-1;
     }
     else{
         addToCart('galaxy',res);
@@ -270,8 +280,9 @@ app.post('/galaxy',function(req,res){
 
 app.post('/leaves', function(req, res){
     if(loggedInUserData.cart.includes("leaves")){
-        alert("Item already there!");
-        res.redirect('home');
+        homeErrors = 0;
+        res.render('home',{homeErrors});
+        homeErrors=-1;
     }
     else{
         addToCart('leaves',res);
@@ -280,8 +291,9 @@ app.post('/leaves', function(req, res){
 
 app.post('/sun', function(req, res){
     if(loggedInUserData.cart.includes("sun")){
-        alert("Item already there!");
-        res.redirect('home');
+        homeErrors = 0;
+        res.render('home',{homeErrors});
+        homeErrors=-1;
     }
     else{
         addToCart('sun',res);
@@ -290,8 +302,9 @@ app.post('/sun', function(req, res){
 
 app.post('/boxing', function(req, res){
     if(loggedInUserData.cart.includes("boxing")){
-        alert("Item already there!");
-        res.redirect('home');
+        homeErrors = 0;
+        res.render('home',{homeErrors});
+        homeErrors=-1;
     }
     else{
         addToCart('boxing',res);
@@ -300,8 +313,9 @@ app.post('/boxing', function(req, res){
 
 app.post('/tennis', function(req, res){
     if(loggedInUserData.cart.includes("tennis")){
-        alert("Item already there!");
-        res.redirect('home');
+        homeErrors = 0;
+        res.render('home',{homeErrors});
+        homeErrors=-1;
     }
     else{
         addToCart('tennis',res);
@@ -342,8 +356,9 @@ app.post('/search',function(req, res){
         }
         
     }else{
-        alert("Not Found!");
-        res.redirect("home");
+        homeErrors = 1;
+        res.render("home",{homeErrors});
+        homeErrors = -1;
     }
 });
 
