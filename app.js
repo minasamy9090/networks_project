@@ -2,17 +2,18 @@ const { count } = require('console');
 const e = require('express');
 var session = require('express-session')
 
-app.set('trust proxy', 1) // trust first proxy
-app.use(session({
-  secret: loggedInUser,
-  resave: false,
-  saveUninitialized: true
-}));
+
 
 
 var express = require('express');
 var path = require('path');
 var app = express();
+
+app.use(session({
+  secret: "loggedInUser",
+  resave: false,
+  saveUninitialized: true
+}));
 
 let alert = require('alert'); 
 const { get } = require('jquery');
