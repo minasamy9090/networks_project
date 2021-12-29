@@ -9,11 +9,8 @@ var express = require('express');
 var path = require('path');
 var app = express();
 
-app.use(session({
-  secret: "loggedInUser",
-  resave: false,
-  saveUninitialized: true
-}));
+app.use(session({secret: 'ssshhhhh',saveUninitialized: true,resave: true}));
+
 
 let alert = require('alert'); 
 const { get } = require('jquery');
@@ -51,7 +48,7 @@ async function insertData(inputUserName,inputPassword,res){
             }
             await client.close();
 }
-async function searchInDataLoginQuery(inputUserName,inputPassword,res){
+async function searchInDataLoginQuery(inputUserName,inputPassword,res,req){
     const { MongoClient } = require("mongodb");                                                                                                                                       
             const url = "mongodb+srv://venom:venom@cluster0.lyvpq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
             const client = new MongoClient(url);
@@ -62,17 +59,19 @@ async function searchInDataLoginQuery(inputUserName,inputPassword,res){
             const query = {username: inputUserName,password :inputPassword};
             const count = await col.countDocuments(query);
             if (count==1){
-                   loginSuccess(res,query);
+                   loginSuccess(res,req,query);
             }
             else{
                    loginFailed(res);
             }
             await client.close();
 }         
-async function loginSuccess(res,query){
+async function loginSuccess(res,req,query){
         loggedIn = true;
         loggedInUser = query;
         getUserAllData(loggedInUser);
+        sess = req.session;
+        sess.email = req.body.username;
         res.redirect('home');
 }
 async function loginFailed(res){
@@ -137,6 +136,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 //////////    GET    //////////
+var sess;
 app.get('/',function(req,res){
     res.render('login',{title: "HomePage"})
 });
@@ -191,7 +191,7 @@ app.get('/leaves',function(req,res){
     }
 });
 app.get('/home',function(req,res){
-    if (loggedIn != undefined){
+    if (sess != undefined){
         res.render('home',{homeErrors})
     }
     else{
@@ -242,7 +242,8 @@ app.get('/tennis',function(req,res){
 app.post('/',function(req,res){
     var username = req.body.username;
     var password = req.body.password;
-    searchInDataLoginQuery(username, password,res);
+    
+    searchInDataLoginQuery(username, password,res,req);
 });
 
 app.post('/register',function(req,res){
