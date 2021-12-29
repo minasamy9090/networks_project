@@ -1,7 +1,7 @@
 const { count } = require('console');
 const e = require('express');
 var session = require('express-session')
-
+var cookieSession = require('cookie-session')
 
 
 
@@ -9,11 +9,15 @@ var express = require('express');
 var path = require('path');
 var app = express();
 
-app.use(session({secret: 'ssshhhhh',saveUninitialized: true,resave: true}));
-
+//app.use(session({secret: 'ssshhhhh',cookie:{}}));
+app.use(cookieSession({
+    name: 'session',
+    keys: ['key1', 'key2']
+  }))
 
 let alert = require('alert'); 
 const { get } = require('jquery');
+const { userInfo } = require('os');
 
 var loggedIn;
 var loggedInUser;
@@ -48,6 +52,7 @@ async function insertData(inputUserName,inputPassword,res){
             }
             await client.close();
 }
+
 async function searchInDataLoginQuery(inputUserName,inputPassword,res,req){
     const { MongoClient } = require("mongodb");                                                                                                                                       
             const url = "mongodb+srv://venom:venom@cluster0.lyvpq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -71,7 +76,9 @@ async function loginSuccess(res,req,query){
         loggedInUser = query;
         getUserAllData(loggedInUser);
         sess = req.session;
-        sess.email = req.body.username;
+        sess.views=0;
+        sess.views = sess.views+ 1;
+        console.log(sess.views);
         res.redirect('home');
 }
 async function loginFailed(res){
@@ -192,7 +199,12 @@ app.get('/leaves',function(req,res){
 });
 app.get('/home',function(req,res){
     if (sess != undefined){
-        res.render('home',{homeErrors})
+        if (sess.views >= 1){
+            res.render('home',{homeErrors})
+        }
+        else{
+            res.redirect('/')
+        }    
     }
     else{
         res.redirect('/')
